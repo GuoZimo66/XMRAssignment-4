@@ -112,8 +112,6 @@ public class UDPClient
         }
     }
 
-
-
     private static String sendAndReceive(DatagramSocket socket, DatagramPacket packet, InetAddress address, int port) throws IOException {}
 
 
