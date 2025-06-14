@@ -108,6 +108,31 @@ public class UDPClient {
             System.err.println("Error downloading " + filename + ": " + e.getMessage());
         }
     }
+    private static String sendAndReceive(DatagramSocket socket, DatagramPacket packet,
+                                         InetAddress address, int port) throws IOException {
+        byte[] buffer = new byte[2048];
+        DatagramPacket responsePacket = new DatagramPacket(buffer, buffer.length);
+        int currentTimeout = INITIAL_TIMEOUT;
+        int attempts = 0;
+
+        while (attempts < MAX_RETRIES) {
+            try {
+                socket.send(packet);
+                socket.setSoTimeout(currentTimeout);
+                socket.receive(responsePacket);
+                return new String(responsePacket.getData(), 0, responsePacket.getLength()).trim();
+            } catch (SocketTimeoutException e) {
+                attempts++;
+                if (attempts >= MAX_RETRIES) {
+                    throw new IOException("Max retries reached, giving up");
+                }
+                currentTimeout *= 2;
+                System.out.println("Timeout, retrying (" + attempts + "/" + MAX_RETRIES + ")...");
+            }
+        }
+
+        throw new IOException("Failed to receive response after " + MAX_RETRIES + " attempts");
+    }
 }
 
 
